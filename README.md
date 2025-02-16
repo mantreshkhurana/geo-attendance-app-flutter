@@ -1,4 +1,4 @@
-Here’s the full Markdown (MD) code for your README.md file:
+
 
 # Geo Attendance App
 
