@@ -1,0 +1,44 @@
+name: geo_attendance_app
+description: Geo Attendance App is a location-based attendance tracking system that ensures students are physically present in class before they can mark themselves as present.
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.18.2 <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  firebase_auth: ^3.11.2
+  firebase_core: ^1.24.0
+  cloud_firestore: ^3.5.1
+  firebase_storage: ^10.3.11
+  keyboard_dismisser: ^3.0.0
+  modal_bottom_sheet: ^2.1.2
+  intl: ^0.17.0
+  cupertino_list_tile: ^0.2.1
+  msh_checkbox: ^1.1.1
+  geolocator: ^9.0.2
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+  icons_launcher: ^2.0.5
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+
+icons_launcher:
+  image_path: 'assets/images/logo.png'
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
