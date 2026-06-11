@@ -3,13 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/screens.dart';
 
 class AuthGate extends StatefulWidget {
-  const AuthGate({Key? key}) : super(key: key);
+  const AuthGate({super.key});
 
   @override
-  _MyAuthGatePageState createState() => _MyAuthGatePageState();
+  State<AuthGate> createState() => _AuthGateState();
 }
 
-class _MyAuthGatePageState extends State<AuthGate> {
+class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(

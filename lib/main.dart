@@ -1,10 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'screens/screens.dart';
+import 'firebase_options.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  // Uses PLACEHOLDER Firebase config — auth/firestore/storage will NOT work.
+  // For real Firebase: delete lib/firebase_options.dart and
+  // android/app/google-services.json, then run `flutterfire configure`.
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     const MyApp(),
   );
@@ -15,58 +22,54 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: CupertinoThemeData(
-        brightness: Brightness.dark,
-        barBackgroundColor: CupertinoColors.black,
-      ),
-      home: AuthGate(),
+      title: 'Geo Attendance',
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
+      home: const AuthGate(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   MyHomePageState createState() => MyHomePageState();
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  final List<Widget> _tabs = [
-    const HomePage(),
-    const AttendancePage(),
+  int _index = 0;
+
+  final List<Widget> _tabs = const [
+    HomePage(),
+    AttendancePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      resizeToAvoidBottomInset: false,
-      child: SafeArea(
-        child: CupertinoTabScaffold(
-          tabBar: CupertinoTabBar(
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(
-                  CupertinoIcons.home,
-                  size: 26,
-                ),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  CupertinoIcons.person_2,
-                  size: 26,
-                ),
-                label: 'GEO Attendance App',
-              ),
-            ],
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: IndexedStack(index: _index, children: _tabs),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(FontAwesomeIcons.house, size: 20),
+            selectedIcon: Icon(FontAwesomeIcons.house, size: 20),
+            label: 'Home',
           ),
-          tabBuilder: (BuildContext context, index) {
-            return _tabs[index];
-          },
-        ),
+          NavigationDestination(
+            icon: Icon(FontAwesomeIcons.clipboardCheck, size: 20),
+            selectedIcon: Icon(FontAwesomeIcons.clipboardCheck, size: 20),
+            label: 'Attendance',
+          ),
+        ],
       ),
     );
   }

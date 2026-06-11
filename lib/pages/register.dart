@@ -1,201 +1,145 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
-import '../../screens/screens.dart';
+import '../screens/screens.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _MyRegisterPageState createState() => _MyRegisterPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _MyRegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
   @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (passwordController.text != confirmPasswordController.text) {
+      await AppDialog.info(
+        context,
+        title: 'Passwords Did Not Match',
+        message: 'Please make sure both passwords are the same.',
+        isError: true,
+      );
+      return;
+    }
+    final shouldNavigate =
+        await register(context, emailController.text, passwordController.text);
+    if (shouldNavigate && mounted) {
+      await addUser(nameController.text, emailController.text);
+      if (mounted) goFront(context, const MyHomePage());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return KeyboardDismisser(
       gestures: const [GestureType.onTap, GestureType.onPanUpdateDownDirection],
-      child: SafeArea(
-        child: CupertinoPageScaffold(
+      child: Scaffold(
+        body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 170,
-                    width: 170,
-                    child: Image(
-                      image: AssetImage(
-                        'assets/images/register.png',
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Register',
-                    style: TextStyle(
-                      fontSize: 33,
-                      fontWeight: FontWeight.bold,
+                  const AnimatedEntrance(
+                    index: 0,
+                    child: AuthHero(icon: FontAwesomeIcons.userPlus),
+                  ),
+                  const SizedBox(height: 24),
+                  AnimatedEntrance(
+                    index: 1,
+                    child: Text(
+                      'Create Account',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    height: 40,
-                    width: 350,
-                    child: CupertinoTextField(
-                      maxLength: 20,
+                  const SizedBox(height: 28),
+                  AnimatedEntrance(
+                    index: 2,
+                    child: AppTextField(
                       controller: nameController,
-                      placeholder: 'Name',
-                      prefix: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Icon(
-                          CupertinoIcons.person_crop_circle,
-                          size: 23,
-                          color: CupertinoColors.systemGrey,
-                        ),
-                        onPressed: () {
-                          goTo(context, const ProfilePage());
-                        },
-                      ),
-                      keyboardType: TextInputType.text,
-                      textInputAction: TextInputAction.next,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      label: 'Name',
+                      icon: FontAwesomeIcons.user,
+                      maxLength: 20,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 40,
-                    width: 350,
-                    child: CupertinoTextField(
+                  const SizedBox(height: 16),
+                  AnimatedEntrance(
+                    index: 3,
+                    child: AppTextField(
                       controller: emailController,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[0-9a-z@.]")),
-                      ],
-                      placeholder: 'Email',
-                      prefix: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Icon(
-                          CupertinoIcons.mail,
-                          size: 23,
-                          color: CupertinoColors.systemGrey,
-                        ),
-                        onPressed: () {
-                          goTo(context, const ProfilePage());
-                        },
-                      ),
+                      label: 'Email',
+                      icon: FontAwesomeIcons.envelope,
                       keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp("[0-9a-zA-Z@._-]")),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 40,
-                    width: 350,
-                    child: CupertinoTextField(
+                  const SizedBox(height: 16),
+                  AnimatedEntrance(
+                    index: 4,
+                    child: AppTextField(
                       controller: passwordController,
-                      placeholder: 'Password',
-                      prefix: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Icon(
-                          CupertinoIcons.padlock,
-                          size: 23,
-                          color: CupertinoColors.systemGrey,
-                        ),
-                        onPressed: () {
-                          goTo(context, const ProfilePage());
-                        },
-                      ),
+                      label: 'Password',
+                      icon: FontAwesomeIcons.lock,
                       obscureText: true,
                       maxLength: 12,
-                      textInputAction: TextInputAction.next,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 40,
-                    width: 350,
-                    child: CupertinoTextField(
+                  const SizedBox(height: 16),
+                  AnimatedEntrance(
+                    index: 5,
+                    child: AppTextField(
                       controller: confirmPasswordController,
-                      placeholder: 'Confirm Password',
-                      prefix: CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: const Icon(
-                          CupertinoIcons.padlock,
-                          size: 23,
-                          color: CupertinoColors.systemGrey,
-                        ),
-                        onPressed: () {
-                          goTo(context, const ProfilePage());
-                        },
-                      ),
+                      label: 'Confirm Password',
+                      icon: FontAwesomeIcons.lock,
                       obscureText: true,
                       maxLength: 12,
                       textInputAction: TextInputAction.done,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey6,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    height: 50,
-                    child: CupertinoButton(
-                      color: CupertinoColors.systemPink,
-                      onPressed: () async {
-                        if (confirmPasswordController.text ==
-                            passwordController.text) {
-                          bool shouldNavigate = await register(context,
-                              emailController.text, passwordController.text);
-
-                          if (shouldNavigate) {
-                            await addUser(
-                              nameController.text,
-                              emailController.text,
-                            );
-                            // ignore: use_build_context_synchronously
-                            goFront(context, const MyHomePage());
-                          }
-                        } else {
-                          showCupertinoDialog(
-                            context: context,
-                            builder: passwordDidNotMatch,
-                          );
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: const Text('Register'),
+                  const SizedBox(height: 28),
+                  AnimatedEntrance(
+                    index: 6,
+                    child: PrimaryButton(
+                      label: 'Register',
+                      icon: FontAwesomeIcons.userPlus,
+                      onPressed: _submit,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(0, 30, 0, 0),
-                    child: GestureDetector(
-                      onTap: () {
-                        goFront(context, const LoginPage());
-                      },
-                      child: const Text(
-                        'Already have an Account? Login',
-                        style: TextStyle(
-                            fontSize: 15, color: CupertinoColors.systemGrey),
-                      ),
+                  const SizedBox(height: 20),
+                  AnimatedEntrance(
+                    index: 7,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Already have an account?'),
+                        TextButton(
+                          onPressed: () => goFront(context, const LoginPage()),
+                          child: const Text('Login'),
+                        ),
+                      ],
                     ),
                   ),
                 ],

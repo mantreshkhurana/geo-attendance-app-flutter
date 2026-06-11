@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:geo_attendance_app/auth/auth_util.dart';
 
 final User info = FirebaseAuth.instance.currentUser!;
@@ -29,18 +29,4 @@ Future<void> updateUser(String name) {
       .catchError(
         (error) => debugPrint("Failed to update user: $error"),
       );
-}
-
-Widget userUpdated(BuildContext context) {
-  return CupertinoAlertDialog(
-    title: const Text('Your details are Updated.'),
-    actions: [
-      CupertinoDialogAction(
-        child: const Text('Continue'),
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-      ),
-    ],
-  );
 }
