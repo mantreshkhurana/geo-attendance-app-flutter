@@ -1,8 +1,8 @@
-import 'package:attendance/functions/class.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geo_attendance_app/functions/class.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../screens/screens.dart';

@@ -1,6 +1,6 @@
-import 'package:attendance/auth/auth_util.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geo_attendance_app/auth/auth_util.dart';
 import 'package:intl/intl.dart';
 
 DateTime timestamp = DateTime.now();

@@ -1,7 +1,7 @@
-import 'package:attendance/auth/auth_util.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:geo_attendance_app/auth/auth_util.dart';
 
 final User info = FirebaseAuth.instance.currentUser!;
 final uid = info.uid;
