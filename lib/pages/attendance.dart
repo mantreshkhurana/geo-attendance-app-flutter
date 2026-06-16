@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../screens/screens.dart';
@@ -11,35 +10,30 @@ class AttendancePage extends StatefulWidget {
 }
 
 class _AttendancePageState extends State<AttendancePage> {
-  final _users = FirebaseFirestore.instance.collection('users');
-  final _classes = FirebaseFirestore.instance.collection('classes');
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Attendance')),
-      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: _users.doc(userUid).snapshots(),
+      body: StreamBuilder<AppUser?>(
+        stream: backend.userStream(userUid ?? ''),
         builder: (context, userSnap) {
-          if (!userSnap.hasData || userSnap.data!.data() == null) {
+          if (!userSnap.hasData || userSnap.data == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          final userData = userSnap.data!.data()!;
-          final isTeacher = userData['role'] == 'Teacher';
-          final myName = userData['name'] as String? ?? '';
+          final appUser = userSnap.data!;
+          final isTeacher = appUser.isTeacher;
+          final myName = appUser.name;
 
-          return StreamBuilder<QuerySnapshot>(
-            stream:
-                _classes.orderBy('createdAt', descending: true).snapshots(),
+          return StreamBuilder<List<AppClass>>(
+            stream: backend.classesStream(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final docs = snapshot.data!.docs.where((doc) {
+              final docs = snapshot.data!.where((c) {
                 if (!isTeacher) return true;
-                final data = doc.data() as Map<String, dynamic>;
-                return data['email'] == userEmail;
+                return c.email == userEmail;
               }).toList();
 
               if (docs.isEmpty) {
@@ -54,23 +48,21 @@ class _AttendancePageState extends State<AttendancePage> {
                 padding: const EdgeInsets.all(16),
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
-                  final data = docs[index].data() as Map<String, dynamic>;
-                  final present =
-                      List<String>.from(data['presentStudents'] ?? []);
-                  final absent =
-                      List<String>.from(data['absentStudents'] ?? []);
+                  final cls = docs[index];
+                  final present = cls.presentStudents;
+                  final absent = cls.absentStudents;
 
                   return AnimatedEntrance(
                     index: index,
                     child: isTeacher
                         ? _TeacherSummaryCard(
-                            className: data['class_name'] ?? '',
+                            className: cls.className,
                             presentCount: present.length,
                             absentCount: absent.length,
                           )
                         : _StudentStatusCard(
-                            className: data['class_name'] ?? '',
-                            teacher: data['teacher'] ?? '',
+                            className: cls.className,
+                            teacher: cls.teacher,
                             status: present.contains(myName)
                                 ? _Status.present
                                 : absent.contains(myName)

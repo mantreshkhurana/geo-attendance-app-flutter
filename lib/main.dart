@@ -6,12 +6,20 @@ import 'firebase_options.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Uses PLACEHOLDER Firebase config — auth/firestore/storage will NOT work.
-  // For real Firebase: delete lib/firebase_options.dart and
-  // android/app/google-services.json, then run `flutterfire configure`.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // When real Firebase credentials are configured, initialize the SDK and use
+  // the live backend. Otherwise the app falls back to an in-memory mock with
+  // seeded demo data — login/register and all screens work without Firebase.
+  // To wire up a real project, run `flutterfire configure`.
+  if (isFirebaseConfigured) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } else {
+    debugPrint(
+      'Firebase not configured — running on seeded MOCK data. '
+      'Sign in with teacher@demo.com or student@demo.com (any password).',
+    );
+  }
   runApp(
     const MyApp(),
   );

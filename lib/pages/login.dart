@@ -15,6 +15,28 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  // Demo role selected via the pill switch (mock mode only).
+  String _role = 'Student';
+
+  @override
+  void initState() {
+    super.initState();
+    if (backend.isMock) _applyDemoCredentials(_role);
+  }
+
+  /// Pre-fills the form with the demo account for [role] so the chosen persona
+  /// lands on rich, role-appropriate mock data.
+  void _applyDemoCredentials(String role) {
+    emailController.text =
+        role == 'Teacher' ? 'teacher@demo.com' : 'student@demo.com';
+    passwordController.text = 'demo1234';
+  }
+
+  void _selectRole(String role) {
+    setState(() => _role = role);
+    _applyDemoCredentials(role);
+  }
+
   @override
   void dispose() {
     emailController.dispose();
@@ -59,6 +81,13 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                     ),
                   ),
+                  if (backend.isMock) ...[
+                    const SizedBox(height: 24),
+                    AnimatedEntrance(
+                      index: 3,
+                      child: _RolePill(value: _role, onChanged: _selectRole),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   AnimatedEntrance(
                     index: 3,
@@ -99,8 +128,12 @@ class _LoginPageState extends State<LoginPage> {
                       label: 'Login',
                       icon: FontAwesomeIcons.rightToBracket,
                       onPressed: () async {
-                        final shouldNavigate = await login(context,
-                            emailController.text, passwordController.text);
+                        final shouldNavigate = await login(
+                          context,
+                          emailController.text,
+                          passwordController.text,
+                          role: backend.isMock ? _role : null,
+                        );
                         if (shouldNavigate && context.mounted) {
                           goFront(context, const MyHomePage());
                         }
@@ -127,6 +160,95 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Pill-shaped Teacher / Student selector with a sliding amber thumb.
+/// Shown only in mock/demo mode to pick which role's seeded data to explore.
+class _RolePill extends StatelessWidget {
+  final String value; // 'Student' | 'Teacher'
+  final ValueChanged<String> onChanged;
+
+  const _RolePill({required this.value, required this.onChanged});
+
+  static const _options = <String, IconData>{
+    'Student': FontAwesomeIcons.userGraduate,
+    'Teacher': FontAwesomeIcons.chalkboardUser,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isStudent = value == 'Student';
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final thumbWidth = constraints.maxWidth / 2;
+          return Stack(
+            children: [
+              AnimatedAlign(
+                alignment:
+                    isStudent ? Alignment.centerLeft : Alignment.centerRight,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: Container(
+                  width: thumbWidth,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: AppColors.brandGradient,
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.seed.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                children: _options.entries.map((entry) {
+                  final selected = entry.key == value;
+                  final color =
+                      selected ? AppColors.onBrand : scheme.onSurfaceVariant;
+                  return Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => onChanged(entry.key),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(entry.value, size: 14, color: color),
+                          const SizedBox(width: 8),
+                          Text(
+                            entry.key,
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -55,7 +55,7 @@ class _AuthHeroState extends State<AuthHero>
             ),
           ],
         ),
-        child: Icon(widget.icon, color: Colors.white, size: 50),
+        child: Icon(widget.icon, color: AppColors.onBrand, size: 50),
       ),
     );
   }

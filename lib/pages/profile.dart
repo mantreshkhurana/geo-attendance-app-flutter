@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../screens/screens.dart';
@@ -11,23 +10,21 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final _users = FirebaseFirestore.instance.collection('users');
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('My Account')),
-      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: _users.doc(userUid).snapshots(),
+      body: StreamBuilder<AppUser?>(
+        stream: backend.userStream(userUid ?? ''),
         builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data!.data() == null) {
+          if (!snapshot.hasData || snapshot.data == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          final data = snapshot.data!.data()!;
-          final name = data['name']?.toString() ?? '';
-          final email = data['email']?.toString() ?? '';
-          final role = data['role']?.toString() ?? 'Student';
+          final data = snapshot.data!;
+          final name = data.name;
+          final email = data.email;
+          final role = data.role;
 
           return ListView(
             padding: const EdgeInsets.all(20),

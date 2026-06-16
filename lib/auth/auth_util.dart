@@ -2,17 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../screens/screens.dart';
 
-final User? user = FirebaseAuth.instance.currentUser;
+// Convenience accessors for the signed-in user, resolved from whichever
+// backend is active (Firebase or mock).
+String? get userEmail => backend.currentUser?.email;
+String? get userUid => backend.currentUser?.uid;
+String? get userdisplayName => backend.currentUser?.name;
 
-String? userEmail = user?.email;
-String? userUid = user?.uid;
-String? userdisplayName = user?.displayName;
-String? phone = user?.phoneNumber;
-
-Future<bool> login(BuildContext context, String email, String password) async {
+Future<bool> login(BuildContext context, String email, String password,
+    {String? role}) async {
   try {
-    await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: email, password: password);
+    await backend.signIn(email, password, roleOverride: role);
     debugPrint('User logged in.');
     return true;
   } catch (exception) {
@@ -33,7 +32,7 @@ Future<bool> login(BuildContext context, String email, String password) async {
 
 Future forgotPassword(BuildContext context, String email) async {
   try {
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    await backend.sendPasswordReset(email);
     debugPrint('Password reset link sent.');
     if (context.mounted) {
       await AppDialog.info(
@@ -61,7 +60,7 @@ Future forgotPassword(BuildContext context, String email) async {
 
 Future resetPassword(BuildContext context, String email) async {
   try {
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    await backend.sendPasswordReset(email);
     debugPrint('Password reset link sent.');
     if (context.mounted) {
       AppDialog.info(
@@ -88,8 +87,7 @@ Future resetPassword(BuildContext context, String email) async {
 Future<bool> register(
     BuildContext context, String email, String password) async {
   try {
-    await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email, password: password);
+    await backend.register(email, password);
     return true;
   } on FirebaseAuthException catch (exception) {
     if (exception.code == 'weak-password') {
@@ -142,7 +140,7 @@ Future<void> signOut(BuildContext context) async {
     destructive: true,
   );
   if (!confirmed) return;
-  await FirebaseAuth.instance.signOut();
+  await backend.signOut();
   debugPrint('Logged out.');
   if (context.mounted) goFront(context, const LoginPage());
 }

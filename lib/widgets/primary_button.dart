@@ -74,20 +74,20 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                     width: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
+                      valueColor: AlwaysStoppedAnimation(AppColors.onBrand),
                     ),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (widget.icon != null) ...[
-                        Icon(widget.icon, color: Colors.white, size: 18),
+                        Icon(widget.icon, color: AppColors.onBrand, size: 18),
                         const SizedBox(width: 10),
                       ],
                       Text(
                         widget.label,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.onBrand,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),

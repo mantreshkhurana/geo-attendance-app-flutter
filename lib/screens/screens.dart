@@ -12,6 +12,8 @@ export '../pages/attendance.dart';
 export '../auth/auth_gate.dart';
 export '../auth/auth_util.dart';
 
+export '../data/backend.dart';
+
 export '../functions/route.dart';
 export '../functions/user.dart';
 

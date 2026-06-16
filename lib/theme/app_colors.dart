@@ -7,35 +7,51 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  /// Seed used to generate the Material 3 [ColorScheme] for both themes.
-  static const Color seed = Color(0xFF6C5CE7);
+  // ---- Amber & Platinum brand palette ----
+  /// Warm amber used as the primary brand color.
+  static const Color amber = Color(0xFFFFB300); // amber 600
+  static const Color amberDeep = Color(0xFFFF8F00); // amber 800
+  /// Cool platinum / silver used as the secondary brand tone.
+  static const Color platinum = Color(0xFFE5E4E2);
+  static const Color platinumDeep = Color(0xFF9CA3AF);
 
-  // Status colors.
+  /// Seed used to generate the Material 3 [ColorScheme] for both themes.
+  static const Color seed = amberDeep;
+
+  /// Dark foreground used for text/icons drawn on the (light) amber–platinum
+  /// brand gradient, where white would be unreadable.
+  static const Color onBrand = Color(0xFF26201A);
+
+  // Status colors (kept semantic for clarity).
   static const Color present = Color(0xFF22C55E);
   static const Color absent = Color(0xFFEF4444);
 
-  // Role accent colors.
-  static const Color teacher = Color(0xFF10B981);
-  static const Color student = Color(0xFFF59E0B);
+  // Role accent colors, aligned to the amber / platinum palette.
+  static const Color teacher = amberDeep;
+  static const Color student = Color(0xFF78909C); // platinum slate
 
-  // Brand gradient used for hero logos, primary buttons and avatars.
+  // Brand gradient (amber → platinum) used for hero logos, primary buttons
+  // and avatars.
   static const List<Color> brandGradient = [
-    Color(0xFF6C5CE7),
-    Color(0xFF8E7CFF),
-    Color(0xFF00B4D8),
+    amberDeep,
+    amber,
+    platinum,
   ];
 
-  /// A small palette of book-cover gradients. A class is mapped to one of
-  /// these deterministically from its name so each "book" looks distinct.
+  /// A small palette of book-cover gradients, all amber / platinum variations
+  /// so each class looks distinct while staying on-brand. A class is mapped to
+  /// one deterministically from its name.
+  ///
+  /// Tones are kept deep enough that the white card text stays legible.
   static const List<List<Color>> bookGradients = [
-    [Color(0xFF6C5CE7), Color(0xFF341F97)],
-    [Color(0xFFEE5253), Color(0xFF8E1C1C)],
-    [Color(0xFF0ABDE3), Color(0xFF1B5E91)],
-    [Color(0xFF10AC84), Color(0xFF0B5D45)],
-    [Color(0xFFF79F1F), Color(0xFFA15B0B)],
-    [Color(0xFFEE5A8E), Color(0xFF8E2057)],
-    [Color(0xFF576574), Color(0xFF2C3A47)],
-    [Color(0xFF5F27CD), Color(0xFF341977)],
+    [Color(0xFFE8930C), Color(0xFF7A4A06)], // amber → brown
+    [Color(0xFFC8860D), Color(0xFF6B4A0B)], // gold → bronze
+    [Color(0xFF9CA3AF), Color(0xFF4B5563)], // platinum → graphite
+    [Color(0xFFB5651D), Color(0xFF5E3409)], // amber orange
+    [Color(0xFFA8853A), Color(0xFF5A4410)], // antique gold
+    [Color(0xFF8A8D91), Color(0xFF43474D)], // platinum slate
+    [Color(0xFFC19A3E), Color(0xFF6E5111)], // champagne gold
+    [Color(0xFF78909C), Color(0xFF37474F)], // cool platinum
   ];
 
   /// Pick a stable gradient for [seedString] (e.g. a class name).

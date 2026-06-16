@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,7 +8,6 @@ class ClassPage extends StatefulWidget {
   final String teacher;
   final String className;
   final String classId;
-  final Timestamp createdAt;
   final String branch;
   final String year;
 
@@ -17,7 +15,6 @@ class ClassPage extends StatefulWidget {
     this.teacher,
     this.className,
     this.classId,
-    this.createdAt,
     this.branch,
     this.year, {
     super.key,
@@ -28,8 +25,6 @@ class ClassPage extends StatefulWidget {
 }
 
 class _ClassPageState extends State<ClassPage> {
-  final _users = FirebaseFirestore.instance.collection('users');
-  final _classes = FirebaseFirestore.instance.collection('classes');
   DateTime dateTime = DateTime.now();
 
   /// Ensures location services + permission, then returns the current
@@ -71,10 +66,23 @@ class _ClassPageState extends State<ClassPage> {
 
   // ---- Student: mark attendance via geolocation ----
   Future<void> _markPresent(String studentName) async {
-    final classDoc = await _classes.doc(widget.classId).get();
-    final classData = classDoc.data();
+    // Mock mode has no real location to check against — just mark present so
+    // the demo flow works end to end.
+    if (backend.isMock) {
+      await backend.setAttendance(widget.classId, studentName, true);
+      if (mounted) {
+        await AppDialog.info(
+          context,
+          title: 'Attendance Done',
+          message: 'You are marked present for this class.',
+        );
+      }
+      return;
+    }
 
-    if (classData == null || classData['latitude'] == null) {
+    final classData = await backend.getClass(widget.classId);
+
+    if (classData == null || classData.latitude == null) {
       if (mounted) {
         await AppDialog.info(
           context,
@@ -90,15 +98,12 @@ class _ClassPageState extends State<ClassPage> {
     final distanceInMeters = Geolocator.distanceBetween(
       position.latitude,
       position.longitude,
-      classData['latitude'],
-      classData['longitude'],
+      classData.latitude!,
+      classData.longitude!,
     );
 
     if (distanceInMeters <= 100) {
-      await _classes.doc(widget.classId).update({
-        'presentStudents': FieldValue.arrayUnion([studentName]),
-        'absentStudents': FieldValue.arrayRemove([studentName]),
-      });
+      await backend.setAttendance(widget.classId, studentName, true);
       if (mounted) {
         await AppDialog.info(
           context,
@@ -107,10 +112,7 @@ class _ClassPageState extends State<ClassPage> {
         );
       }
     } else {
-      await _classes.doc(widget.classId).update({
-        'absentStudents': FieldValue.arrayUnion([studentName]),
-        'presentStudents': FieldValue.arrayRemove([studentName]),
-      });
+      await backend.setAttendance(widget.classId, studentName, false);
       if (mounted) {
         await AppDialog.info(
           context,
@@ -124,26 +126,28 @@ class _ClassPageState extends State<ClassPage> {
 
   // ---- Teacher: start attendance, capture location, seed lists ----
   Future<void> _startAttendance(String teacherName) async {
+    // In mock mode skip the GPS prompt and seed the roster directly.
+    if (backend.isMock) {
+      await backend.startAttendance(widget.classId, teacherName: teacherName);
+      if (mounted) {
+        await AppDialog.info(
+          context,
+          title: 'Attendance Started',
+          message: 'Students can now mark themselves present.',
+        );
+      }
+      return;
+    }
+
     final position = await _resolvePosition(LocationAccuracy.medium);
     if (position == null) return;
 
-    await _classes.doc(widget.classId).update({
-      'latitude': position.latitude,
-      'longitude': position.longitude,
-      'date': dateTime,
-    });
-
-    final students =
-        await _users.where('role', isEqualTo: 'Student').get();
-    for (final element in students.docs) {
-      await _classes.doc(widget.classId).update({
-        'absentStudents': FieldValue.arrayUnion([element.data()['name']]),
-      });
-    }
-
-    await _classes.doc(widget.classId).update({
-      'presentStudents': FieldValue.arrayUnion([teacherName]),
-    });
+    await backend.startAttendance(
+      widget.classId,
+      teacherName: teacherName,
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
 
     if (mounted) {
       await AppDialog.info(
@@ -166,17 +170,17 @@ class _ClassPageState extends State<ClassPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: _users.doc(userUid).snapshots(),
+    return StreamBuilder<AppUser?>(
+      stream: backend.userStream(userUid ?? ''),
       builder: (context, userSnap) {
-        if (!userSnap.hasData || userSnap.data!.data() == null) {
+        if (!userSnap.hasData || userSnap.data == null) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        final userData = userSnap.data!.data()!;
-        final isTeacher = userData['role'] == 'Teacher';
-        final myName = userData['name'] as String? ?? '';
+        final appUser = userSnap.data!;
+        final isTeacher = appUser.isTeacher;
+        final myName = appUser.name;
 
         return Scaffold(
           appBar: AppBar(
@@ -349,16 +353,15 @@ class _TeacherAttendanceList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final classes = FirebaseFirestore.instance.collection('classes');
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: classes.doc(classId).snapshots(),
+    return StreamBuilder<AppClass?>(
+      stream: backend.classStream(classId),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data!.data() == null) {
+        if (!snapshot.hasData || snapshot.data == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final data = snapshot.data!.data()!;
-        final present = List<String>.from(data['presentStudents'] ?? []);
-        final absent = List<String>.from(data['absentStudents'] ?? []);
+        final data = snapshot.data!;
+        final present = data.presentStudents;
+        final absent = data.absentStudents;
         final total = present.length + absent.length;
 
         if (total == 0) {
@@ -393,19 +396,8 @@ class _TeacherAttendanceList extends StatelessWidget {
                   ),
                   trailing: AttendanceCheckbox(
                     value: isPresent,
-                    onChanged: (newValue) {
-                      if (newValue) {
-                        classes.doc(classId).update({
-                          'absentStudents': FieldValue.arrayRemove([name]),
-                          'presentStudents': FieldValue.arrayUnion([name]),
-                        });
-                      } else {
-                        classes.doc(classId).update({
-                          'presentStudents': FieldValue.arrayRemove([name]),
-                          'absentStudents': FieldValue.arrayUnion([name]),
-                        });
-                      }
-                    },
+                    onChanged: (newValue) =>
+                        backend.setAttendance(classId, name, newValue),
                   ),
                 ),
               ),

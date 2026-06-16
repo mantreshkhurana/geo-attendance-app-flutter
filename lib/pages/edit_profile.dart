@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
@@ -12,7 +11,6 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final _users = FirebaseFirestore.instance.collection('users');
   final nameController = TextEditingController();
   bool _initialized = false;
 
@@ -28,18 +26,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
       gestures: const [GestureType.onTap, GestureType.onPanUpdateDownDirection],
       child: Scaffold(
         appBar: AppBar(title: const Text('Edit Account')),
-        body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-          stream: _users.doc(userUid).snapshots(),
+        body: StreamBuilder<AppUser?>(
+          stream: backend.userStream(userUid ?? ''),
           builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.data() == null) {
+            if (!snapshot.hasData || snapshot.data == null) {
               return const Center(child: CircularProgressIndicator());
             }
-            final data = snapshot.data!.data()!;
+            final data = snapshot.data!;
             if (!_initialized) {
-              nameController.text = data['name']?.toString() ?? '';
+              nameController.text = data.name;
               _initialized = true;
             }
-            final name = data['name']?.toString() ?? '';
+            final name = data.name;
 
             return ListView(
               padding: const EdgeInsets.all(20),

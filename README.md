@@ -36,20 +36,19 @@ Geo Attendance App is a location-based attendance tracking system that ensures s
 
 ## Screenshots
 
-| Login Screen | Home  |  Attendance | Profile  |  Done | Error |
-
-| ------------ | ----------- | ----------------- | -------------- | --------------- | ----- |
-| ![Login Screen](screenshots/login.jpg) | ![Home Screen](screenshots/home.jpg) | ![Attendance Screen](screenshots/done.jpg) | ![Profile Screen](screenshots/profile.jpg) | ![Attendance Done](screenshots/done.jpg) | ![Error](screenshots/error.jpg) |
+| Login Screen | Home  |  Attendance | Profile  |  Done | Teacher  |
+| ------------ | ----------- | ----------------- | -------------- | --------------- | --------------- |
+| ![Login Screen](screenshots/login_student.png) | ![Home Screen](screenshots/home_student.png) | ![Attendance Screen](screenshots/attendance_student.png) | ![Profile Screen](screenshots/profile_student.png) | ![Attendance Done](screenshots/done_student.png) | ![Teacher Screen](screenshots/teacher.png) |
 
 ## Installation
 
 1. Clone the repository:
 
-   ```sh
-   git clone https://github.com/mantreshkhurana/geo-attendance-app.git
-    cd geo-attendance-app
-    flutter pub get
-    ```
+```sh
+git clone https://github.com/mantreshkhurana/geo-attendance-app.git
+cd geo-attendance-app
+flutter pub get
+```
 
 ## Firebase Setup
 

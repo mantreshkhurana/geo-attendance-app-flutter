@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -14,9 +13,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _users = FirebaseFirestore.instance.collection('users');
-  final _classes = FirebaseFirestore.instance.collection('classes');
-
   final classNameController = TextEditingController();
   final yearNameController = TextEditingController();
   final branchNameController = TextEditingController();
@@ -133,18 +129,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: _users.doc(userUid).snapshots(),
+    return StreamBuilder<AppUser?>(
+      stream: backend.userStream(userUid ?? ''),
       builder: (context, userSnap) {
-        if (!userSnap.hasData || userSnap.data!.data() == null) {
+        if (!userSnap.hasData || userSnap.data == null) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        final userData = userSnap.data!.data()!;
-        final role = userData['role'] as String? ?? 'Student';
-        final name = userData['name'] as String? ?? '';
-        final isTeacher = role == 'Teacher';
+        final appUser = userSnap.data!;
+        final name = appUser.name;
+        final isTeacher = appUser.isTeacher;
 
         return Scaffold(
           appBar: AppBar(
@@ -166,19 +161,16 @@ class _HomePageState extends State<HomePage> {
                   label: const Text('Add Class'),
                 )
               : null,
-          body: StreamBuilder<QuerySnapshot>(
-            stream: _classes
-                .orderBy('createdAt', descending: true)
-                .snapshots(),
+          body: StreamBuilder<List<AppClass>>(
+            stream: backend.classesStream(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final docs = snapshot.data!.docs.where((doc) {
+              final docs = snapshot.data!.where((c) {
                 if (!isTeacher) return true;
-                final data = doc.data() as Map<String, dynamic>;
-                return data['email'] == userEmail;
+                return c.email == userEmail;
               }).toList();
 
               if (docs.isEmpty) {
@@ -195,16 +187,16 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.only(top: 8, bottom: 100),
                 itemCount: docs.length,
                 itemBuilder: (context, index) {
-                  final data = docs[index].data() as Map<String, dynamic>;
-                  final classId = docs[index].id;
+                  final cls = docs[index];
+                  final classId = cls.classId;
                   return AnimatedEntrance(
                     index: index,
                     child: BookCard(
                       heroTag: 'class_$classId',
-                      className: data['class_name'] ?? '',
-                      teacher: data['teacher'] ?? '',
-                      branch: data['branch'] ?? '',
-                      year: data['year']?.toString() ?? '',
+                      className: cls.className,
+                      teacher: cls.teacher,
+                      branch: cls.branch,
+                      year: cls.year,
                       onDelete:
                           isTeacher ? () => _confirmDelete(classId) : null,
                       onTap: () {
@@ -212,12 +204,11 @@ class _HomePageState extends State<HomePage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => ClassPage(
-                              data['teacher'] ?? '',
-                              data['class_name'] ?? '',
+                              cls.teacher,
+                              cls.className,
                               classId,
-                              data['createdAt'] ?? Timestamp.now(),
-                              data['branch'] ?? '',
-                              data['year']?.toString() ?? '',
+                              cls.branch,
+                              cls.year,
                             ),
                           ),
                         );

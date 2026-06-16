@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/screens.dart';
 
 class AuthGate extends StatefulWidget {
@@ -12,8 +11,8 @@ class AuthGate extends StatefulWidget {
 class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+    return StreamBuilder<AppUser?>(
+      stream: backend.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           return const MyHomePage();

@@ -1,32 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:geo_attendance_app/auth/auth_util.dart';
+import '../data/backend.dart';
 
-final User info = FirebaseAuth.instance.currentUser!;
-final uid = info.uid;
-CollectionReference users = FirebaseFirestore.instance.collection('users');
-
+/// Creates the signed-in user's profile (called right after registration).
 Future<void> addUser(String name, email) async {
-  await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(
-    {
-      'name': name,
-      'uid': uid,
-      'email': email,
-      'role': 'Student',
-    },
-  );
+  await backend.upsertUserProfile(name, email.toString());
   debugPrint('User added.');
 }
 
-Future<void> updateUser(String name) {
-  return users
-      .doc(info.uid)
-      .update({
-        'name': name,
-      })
-      .then((value) => debugPrint("User Updated."))
-      .catchError(
-        (error) => debugPrint("Failed to update user: $error"),
-      );
+/// Updates the signed-in user's display name.
+Future<void> updateUser(String name) async {
+  await backend.updateUserName(name);
+  debugPrint('User Updated.');
 }
